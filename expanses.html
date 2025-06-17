@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Expansion Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            
+            /* Icon color variables */
+            --dashboard-icon: #4361ee;
+            --expenses-icon: #f72585;
+            --income-icon: #4cc9f0;
+            --debts-icon: #f8961e;
+            --deposits-icon: #4895ef;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .app-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+        }
+        
+        .app-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .app-header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--dark-color);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        /* Icon color classes */
+        .nav-link i.dashboard-icon {
+            color: var(--dashboard-icon);
+        }
+        
+        .nav-link i.expenses-icon {
+            color: var(--expenses-icon);
+        }
+        
+        .nav-link i.income-icon {
+            color: var(--income-icon);
+        }
+        
+        .nav-link i.debts-icon {
+            color: var(--debts-icon);
+        }
+        
+        .nav-link i.deposits-icon {
+            color: var(--deposits-icon);
+        }
+        
+        /* Active/hover state icon colors */
+        .nav-link.active i.dashboard-icon,
+        .nav-link:hover i.dashboard-icon {
+            color: var(--dashboard-icon);
+        }
+        
+        .nav-link.active i.expenses-icon,
+        .nav-link:hover i.expenses-icon {
+            color: var(--expenses-icon);
+        }
+        
+        .nav-link.active i.income-icon,
+        .nav-link:hover i.income-icon {
+            color: var(--income-icon);
+        }
+        
+        .nav-link.active i.debts-icon,
+        .nav-link:hover i.debts-icon {
+            color: var(--debts-icon);
+        }
+        
+        .nav-link.active i.deposits-icon,
+        .nav-link:hover i.deposits-icon {
+            color: var(--deposits-icon);
+        }
+        
+        .main-content {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .summary-card.income {
+            border-left-color: var(--success-color);
+        }
+        
+        .summary-card.expense {
+            border-left-color: var(--danger-color);
+        }
+        
+        .summary-card.debt {
+            border-left-color: var(--warning-color);
+        }
+        
+        .summary-card.deposit {
+            border-left-color: var(--accent-color);
+        }
+        
+        .summary-card h3 {
+            font-size: 1rem;
+            color: var(--gray-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .summary-card h3 i {
+            margin-right: 8px;
+        }
+        
+        .summary-card .amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .summary-card .change {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+        
+        .chart-container {
+            margin-top: 30px;
+            position: relative;
+            height: 400px;
+            width: 100%;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+        }
+        
+        .form-section h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-section h2 i {
+            margin-right: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="month"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d1145a;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e07e0c;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #2fb8e0;
+        }
+        
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .dynamic-field {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: rgba(67, 97, 238, 0.05);
+            border-radius: var(--border-radius);
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .friend-family-container {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: rgba(248, 150, 30, 0.05);
+            border-radius: var(--border-radius);
+            border-left: 3px solid var(--warning-color);
+        }
+        
+        .entry-list {
+            margin-top: 30px;
+        }
+        
+        .entry-list h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .entry-list h2 i {
+            margin-right: 10px;
+        }
+        
+        .entry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+        
+        .entry-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .entry-details {
+            flex-grow: 1;
+        }
+        
+        .entry-date {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .entry-category {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .entry-description {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+        
+        .entry-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-left: 15px;
+        }
+        
+        .income-amount {
+            color: var(--success-color);
+        }
+        
+        .expense-amount {
+            color: var(--danger-color);
+        }
+        
+        .debt-amount {
+            color: var(--warning-color);
+        }
+        
+        .deposit-amount {
+            color: var(--accent-color);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-color);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .clear-data-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        
+        .clear-data-btn:hover {
+            background-color: #d1145a;
+            transform: translateY(-2px);
+        }
+        
+        .clear-data-btn i {
+            margin-right: 5px;
+        }
+        
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .confirmation-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+        
+        .modal-content p {
+            margin-bottom: 20px;
+            color: var(--gray-color);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        @media (max-width: 992px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+            
+            .main-content {
+                order: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .summary-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .clear-data-btn {
+                position: static;
+                margin-top: 15px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1><i class="fas fa-chart-line"></i> Financial Expansion Tracker</h1>
+            <p>Track your expenses, income, debts, and deposits in one place</p>
+            <button class="clear-data-btn" id="clearDataBtn">
+                <i class="fas fa-trash-alt"></i> Clear All Data
+            </button>
+        </header>
+        
+        <div class="dashboard">
+            <aside class="sidebar">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-tab="summary">
+                            <i class="fas fa-tachometer-alt dashboard-icon"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-tab="expenses">
+                            <i class="fas fa-money-bill-wave expenses-icon"></i> Expenses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-tab="income">
+                            <i class="fas fa-hand-holding-usd income-icon"></i> Income
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-tab="debts">
+                            <i class="fas fa-credit-card debts-icon"></i> Debts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-tab="deposits">
+                            <i class="fas fa-piggy-bank deposits-icon"></i> Deposits
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+            
+            <main class="main-content">
+                <div class="tab-content active" id="summary-tab">
+                    <div class="summary-cards">
+                        <div class="summary-card income">
+                            <h3><i class="fas fa-hand-holding-usd"></i> Total Income</h3>
+                            <div class="amount" id="totalIncomeDisplay">$0.00</div>
+                            <div class="change">+2.5% from last month</div>
+                        </div>
+                        <div class="summary-card expense">
+                            <h3><i class="fas fa-money-bill-wave"></i> Total Expenses</h3>
+                            <div class="amount" id="totalExpansionDisplay">$0.00</div>
+                            <div class="change">+1.2% from last month</div>
+                        </div>
+                        <div class="summary-card">
+                            <h3><i class="fas fa-balance-scale"></i> Balance</h3>
+                            <div class="amount" id="balanceDisplay">$0.00</div>
+                            <div class="change">Your current balance</div>
+                        </div>
+                        <div class="summary-card debt">
+                            <h3><i class="fas fa-credit-card"></i> Total Debts</h3>
+                            <div class="amount" id="totalDebtsDisplay">$0.00</div>
+                            <div class="change">Active liabilities</div>
+                        </div>
+                        <div class="summary-card deposit">
+                            <h3><i class="fas fa-piggy-bank"></i> Total Deposits</h3>
+                            <div class="amount" id="totalDepositsDisplay">$0.00</div>
+                            <div class="change">Your savings</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="financialChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="expenses-tab">
+                    <div class="form-section">
+                        <h2><i class="fas fa-plus-circle"></i> Add New Expense</h2>
+                        <form id="expenseForm">
+                            <input type="hidden" id="expenseId" name="expenseId" value="">
+                            <div class="form-group">
+                                <label for="expenseDate">Date</label>
+                                <input type="date" id="expenseDate" name="expenseDate" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="expansionCategory">Expense Category</label>
+                                <select id="expansionCategory" name="expansionCategory" required>
+                                    <option value="">-- Select Category --</option>
+                                    <option value="food">Food</option>
+                                    <option value="office">Office Expense</option>
+                                    <option value="rent">Room Rent</option>
+                                    <option value="electric">Electric Bill</option>
+                                    <option value="other">Other Expense</option>
+                                </select>
+                            </div>
+                            
+                            <div id="officeExpansionContainer" class="dynamic-field hidden">
+                                <div class="form-group">
+                                    <label for="officeExpansionType">Office Expense Type</label>
+                                    <select id="officeExpansionType" name="officeExpansionType">
+                                        <option value="">-- Select Type --</option>
+                                        <option value="transport">Transport</option>
+                                        <option value="food">Food</option>
+                                        <option value="parcel">Parcel</option>
+                                        <option value="otherOffice">Other Expense</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="officeOtherContainer" class="dynamic-field hidden">
+                                    <div class="form-group">
+                                        <label for="officeOtherDetails">Specify Other Office Expense</label>
+                                        <input type="text" id="officeOtherDetails" name="officeOtherDetails">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="otherExpenseContainer" class="dynamic-field hidden">
+                                <div class="form-group">
+                                    <label for="otherExpenseDetails">Specify Other Expense</label>
+                                    <input type="text" id="otherExpenseDetails" name="otherExpenseDetails">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="expansionAmount">Expense Amount ($)</label>
+                                <input type="number" id="expansionAmount" name="expansionAmount" step="0.01" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="expenseDescription">Description (Optional)</label>
+                                <input type="text" id="expenseDescription" name="expenseDescription" placeholder="Brief description of the expense">
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn" id="expenseSubmitBtn"><i class="fas fa-save"></i> Add Expense</button>
+                                <button type="button" class="btn btn-secondary hidden" id="expenseCancelBtn"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="entry-list" id="expenseList">
+                        <h2><i class="fas fa-history"></i> Recent Expenses</h2>
+                        <!-- Expenses will be listed here -->
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="income-tab">
+                    <div class="form-section">
+                        <h2><i class="fas fa-plus-circle"></i> Add New Income</h2>
+                        <form id="incomeForm">
+                            <input type="hidden" id="incomeId" name="incomeId" value="">
+                            <div class="form-group">
+                                <label for="incomeDate">Date</label>
+                                <input type="date" id="incomeDate" name="incomeDate" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="incomeSource">Income Source</label>
+                                <select id="incomeSource" name="incomeSource" required>
+                                    <option value="">-- Select Source --</option>
+                                    <option value="salary">Salary</option>
+                                    <option value="business">Business</option>
+                                    <option value="investment">Investment</option>
+                                    <option value="freelance">Freelance</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div id="otherIncomeContainer" class="dynamic-field hidden">
+                                <div class="form-group">
+                                    <label for="otherIncomeDetails">Specify Other Income</label>
+                                    <input type="text" id="otherIncomeDetails" name="otherIncomeDetails">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="incomeAmount">Income Amount ($)</label>
+                                <input type="number" id="incomeAmount" name="incomeAmount" step="0.01" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="incomeDescription">Description (Optional)</label>
+                                <input type="text" id="incomeDescription" name="incomeDescription" placeholder="Brief description of the income">
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn" id="incomeSubmitBtn"><i class="fas fa-save"></i> Add Income</button>
+                                <button type="button" class="btn btn-secondary hidden" id="incomeCancelBtn"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="entry-list" id="incomeList">
+                        <h2><i class="fas fa-history"></i> Recent Income</h2>
+                        <!-- Income entries will be listed here -->
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="debts-tab">
+                    <div class="form-section">
+                        <h2><i class="fas fa-plus-circle"></i> Add New Debt</h2>
+                        <form id="debtForm">
+                            <input type="hidden" id="debtId" name="debtId" value="">
+                            <div class="form-group">
+                                <label for="debtDate">Date</label>
+                                <input type="date" id="debtDate" name="debtDate" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="debtSource">Debt Source</label>
+                                <select id="debtSource" name="debtSource" required>
+                                    <option value="">-- Select Source --</option>
+                                    <option value="personal">Personal Loan</option>
+                                    <option value="credit">Credit Card</option>
+                                    <option value="bank">Bank Loan</option>
+                                    <option value="friend">Friend/Family</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div id="friendFamilyContainer" class="friend-family-container hidden">
+                                <div class="form-group">
+                                    <label for="friendFamilyName">Friend/Family Member Name</label>
+                                    <input type="text" id="friendFamilyName" name="friendFamilyName" placeholder="Enter the person's name">
+                                </div>
+                            </div>
+                            
+                            <div id="otherDebtContainer" class="dynamic-field hidden">
+                                <div class="form-group">
+                                    <label for="otherDebtDetails">Specify Other Debt</label>
+                                    <input type="text" id="otherDebtDetails" name="otherDebtDetails">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="debtAmount">Debt Amount ($)</label>
+                                <input type="number" id="debtAmount" name="debtAmount" step="0.01" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="debtDescription">Description (Optional)</label>
+                                <input type="text" id="debtDescription" name="debtDescription" placeholder="Brief description of the debt">
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn" id="debtSubmitBtn"><i class="fas fa-save"></i> Add Debt</button>
+                                <button type="button" class="btn btn-secondary hidden" id="debtCancelBtn"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="entry-list" id="debtList">
+                        <h2><i class="fas fa-history"></i> Recent Debts</h2>
+                        <!-- Debt entries will be listed here -->
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="deposits-tab">
+                    <div class="form-section">
+                        <h2><i class="fas fa-plus-circle"></i> Add New Deposit</h2>
+                        <form id="depositForm">
+                            <input type="hidden" id="depositId" name="depositId" value="">
+                            <div class="form-group">
+                                <label for="depositDate">Date</label>
+                                <input type="date" id="depositDate" name="depositDate" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="depositSource">Deposit Source</label>
+                                <select id="depositSource" name="depositSource" required>
+                                    <option value="">-- Select Source --</option>
+                                    <option value="savings">Savings</option>
+                                    <option value="investment">Investment Return</option>
+                                    <option value="refund">Refund</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div id="otherDepositContainer" class="dynamic-field hidden">
+                                <div class="form-group">
+                                    <label for="otherDepositDetails">Specify Other Deposit</label>
+                                    <input type="text" id="otherDepositDetails" name="otherDepositDetails">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="depositAmount">Deposit Amount ($)</label>
+                                <input type="number" id="depositAmount" name="depositAmount" step="0.01" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="depositDescription">Description (Optional)</label>
+                                <input type="text" id="depositDescription" name="depositDescription" placeholder="Brief description of the deposit">
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn" id="depositSubmitBtn"><i class="fas fa-save"></i> Add Deposit</button>
+                                <button type="button" class="btn btn-secondary hidden" id="depositCancelBtn"><i class="fas fa-times"></i> Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="entry-list" id="depositList">
+                        <h2><i class="fas fa-history"></i> Recent Deposits</h2>
+                        <!-- Deposit entries will be listed here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <h3>Confirm Clear All Data</h3>
+            <p>Are you sure you want to clear all financial data? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="confirmClearBtn">Yes, Clear All</button>
+                <button class="btn btn-secondary" id="cancelClearBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store financial data
+        let financialData = {
+            expenses: [],
+            income: [],
+            debts: [],
+            deposits: []
+        };
+        
+        // DOM elements
+        const expansionCategory = document.getElementById('expansionCategory');
+        const officeExpansionContainer = document.getElementById('officeExpansionContainer');
+        const officeExpansionType = document.getElementById('officeExpansionType');
+        const officeOtherContainer = document.getElementById('officeOtherContainer');
+        const otherExpenseContainer = document.getElementById('otherExpenseContainer');
+        const otherIncomeContainer = document.getElementById('otherIncomeContainer');
+        const otherDebtContainer = document.getElementById('otherDebtContainer');
+        const friendFamilyContainer = document.getElementById('friendFamilyContainer');
+        const otherDepositContainer = document.getElementById('otherDepositContainer');
+        
+        // Forms
+        const expenseForm = document.getElementById('expenseForm');
+        const incomeForm = document.getElementById('incomeForm');
+        const debtForm = document.getElementById('debtForm');
+        const depositForm = document.getElementById('depositForm');
+        
+        // Form buttons
+        const expenseSubmitBtn = document.getElementById('expenseSubmitBtn');
+        const expenseCancelBtn = document.getElementById('expenseCancelBtn');
+        const incomeSubmitBtn = document.getElementById('incomeSubmitBtn');
+        const incomeCancelBtn = document.getElementById('incomeCancelBtn');
+        const debtSubmitBtn = document.getElementById('debtSubmitBtn');
+        const debtCancelBtn = document.getElementById('debtCancelBtn');
+        const depositSubmitBtn = document.getElementById('depositSubmitBtn');
+        const depositCancelBtn = document.getElementById('depositCancelBtn');
+        
+        // Display elements
+        const totalExpansionDisplay = document.getElementById('totalExpansionDisplay');
+        const totalIncomeDisplay = document.getElementById('totalIncomeDisplay');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const totalDebtsDisplay = document.getElementById('totalDebtsDisplay');
+        const totalDepositsDisplay = document.getElementById('totalDepositsDisplay');
+        
+        // Lists
+        const expenseList = document.getElementById('expenseList');
+        const incomeList = document.getElementById('incomeList');
+        const debtList = document.getElementById('debtList');
+        const depositList = document.getElementById('depositList');
+        
+        // Clear data elements
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmClearBtn = document.getElementById('confirmClearBtn');
+        const cancelClearBtn = document.getElementById('cancelClearBtn');
+        
+        // Chart instance
+        let financialChart;
+        
+        // Tab functionality
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all links and contents
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked link and corresponding content
+                link.classList.add('active');
+                const tabId = link.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+                
+                // Smooth scroll to top
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Event listeners for dynamic fields
+        expansionCategory.addEventListener('change', function() {
+            officeExpansionContainer.classList.add('hidden');
+            otherExpenseContainer.classList.add('hidden');
+            
+            if (this.value === 'office') {
+                officeExpansionContainer.classList.remove('hidden');
+            } else if (this.value === 'other') {
+                otherExpenseContainer.classList.remove('hidden');
+            }
+        });
+        
+        officeExpansionType.addEventListener('change', function() {
+            officeOtherContainer.classList.add('hidden');
+            
+            if (this.value === 'otherOffice') {
+                officeOtherContainer.classList.remove('hidden');
+            }
+        });
+        
+        document.getElementById('incomeSource').addEventListener('change', function() {
+            otherIncomeContainer.classList.add('hidden');
+            if (this.value === 'other') {
+                otherIncomeContainer.classList.remove('hidden');
+            }
+        });
+        
+        document.getElementById('debtSource').addEventListener('change', function() {
+            otherDebtContainer.classList.add('hidden');
+            friendFamilyContainer.classList.add('hidden');
+            
+            if (this.value === 'other') {
+                otherDebtContainer.classList.remove('hidden');
+            } else if (this.value === 'friend') {
+                friendFamilyContainer.classList.remove('hidden');
+            }
+        });
+        
+        document.getElementById('depositSource').addEventListener('change', function() {
+            otherDepositContainer.classList.add('hidden');
+            if (this.value === 'other') {
+                otherDepositContainer.classList.remove('hidden');
+            }
+        });
+        
+        // Form submissions
+        expenseForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const expenseId = document.getElementById('expenseId').value;
+            if (expenseId) {
+                updateExpense(expenseId);
+            } else {
+                addExpense();
+            }
+        });
+        
+        incomeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const incomeId = document.getElementById('incomeId').value;
+            if (incomeId) {
+                updateIncome(incomeId);
+            } else {
+                addIncome();
+            }
+        });
+        
+        debtForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const debtId = document.getElementById('debtId').value;
+            if (debtId) {
+                updateDebt(debtId);
+            } else {
+                addDebt();
+            }
+        });
+        
+        depositForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const depositId = document.getElementById('depositId').value;
+            if (depositId) {
+                updateDeposit(depositId);
+            } else {
+                addDeposit();
+            }
+        });
+        
+        // Cancel buttons
+        expenseCancelBtn.addEventListener('click', resetExpenseForm);
+        incomeCancelBtn.addEventListener('click', resetIncomeForm);
+        debtCancelBtn.addEventListener('click', resetDebtForm);
+        depositCancelBtn.addEventListener('click', resetDepositForm);
+        
+        // Clear data functionality
+        clearDataBtn.addEventListener('click', () => {
+            confirmationModal.classList.add('show');
+        });
+        
+        confirmClearBtn.addEventListener('click', () => {
+            clearAllData();
+            confirmationModal.classList.remove('show');
+        });
+        
+        cancelClearBtn.addEventListener('click', () => {
+            confirmationModal.classList.remove('show');
+        });
+        
+        // Add new expense
+        function addExpense() {
+            const expense = {
+                id: Date.now().toString(),
+                date: document.getElementById('expenseDate').value,
+                category: expansionCategory.value,
+                type: getExpenseType(),
+                amount: parseFloat(document.getElementById('expansionAmount').value),
+                description: document.getElementById('expenseDescription').value,
+                details: getExpenseDetails()
+            };
+            
+            financialData.expenses.push(expense);
+            saveData();
+            updateExpenseList();
+            updateSummary();
+            expenseForm.reset();
+            
+            // Show success feedback
+            showToast('Expense added successfully!', 'success');
+        }
+        
+        // Update existing expense
+        function updateExpense(id) {
+            const index = financialData.expenses.findIndex(expense => expense.id === id);
+            if (index !== -1) {
+                financialData.expenses[index] = {
+                    id: id,
+                    date: document.getElementById('expenseDate').value,
+                    category: expansionCategory.value,
+                    type: getExpenseType(),
+                    amount: parseFloat(document.getElementById('expansionAmount').value),
+                    description: document.getElementById('expenseDescription').value,
+                    details: getExpenseDetails()
+                };
+                
+                saveData();
+                updateExpenseList();
+                updateSummary();
+                resetExpenseForm();
+                
+                // Show success feedback
+                showToast('Expense updated successfully!', 'success');
+            }
+        }
+        
+        // Add new income
+        function addIncome() {
+            const income = {
+                id: Date.now().toString(),
+                date: document.getElementById('incomeDate').value,
+                source: document.getElementById('incomeSource').value,
+                amount: parseFloat(document.getElementById('incomeAmount').value),
+                description: document.getElementById('incomeDescription').value,
+                details: document.getElementById('incomeSource').value === 'other' ? 
+                        document.getElementById('otherIncomeDetails').value : ''
+            };
+            
+            financialData.income.push(income);
+            saveData();
+            updateIncomeList();
+            updateSummary();
+            incomeForm.reset();
+            
+            // Show success feedback
+            showToast('Income added successfully!', 'success');
+        }
+        
+        // Update existing income
+        function updateIncome(id) {
+            const index = financialData.income.findIndex(income => income.id === id);
+            if (index !== -1) {
+                financialData.income[index] = {
+                    id: id,
+                    date: document.getElementById('incomeDate').value,
+                    source: document.getElementById('incomeSource').value,
+                    amount: parseFloat(document.getElementById('incomeAmount').value),
+                    description: document.getElementById('incomeDescription').value,
+                    details: document.getElementById('incomeSource').value === 'other' ? 
+                            document.getElementById('otherIncomeDetails').value : ''
+                };
+                
+                saveData();
+                updateIncomeList();
+                updateSummary();
+                resetIncomeForm();
+                
+                // Show success feedback
+                showToast('Income updated successfully!', 'success');
+            }
+        }
+        
+        // Add new debt
+        function addDebt() {
+            const debt = {
+                id: Date.now().toString(),
+                date: document.getElementById('debtDate').value,
+                source: document.getElementById('debtSource').value,
+                amount: parseFloat(document.getElementById('debtAmount').value),
+                description: document.getElementById('debtDescription').value,
+                details: document.getElementById('debtSource').value === 'other' ? 
+                        document.getElementById('otherDebtDetails').value : '',
+                personName: document.getElementById('debtSource').value === 'friend' ?
+                        document.getElementById('friendFamilyName').value : ''
+            };
+            
+            financialData.debts.push(debt);
+            saveData();
+            updateDebtList();
+            updateSummary();
+            debtForm.reset();
+            
+            // Show success feedback
+            showToast('Debt added successfully!', 'success');
+        }
+        
+        // Update existing debt
+        function updateDebt(id) {
+            const index = financialData.debts.findIndex(debt => debt.id === id);
+            if (index !== -1) {
+                financialData.debts[index] = {
+                    id: id,
+                    date: document.getElementById('debtDate').value,
+                    source: document.getElementById('debtSource').value,
+                    amount: parseFloat(document.getElementById('debtAmount').value),
+                    description: document.getElementById('debtDescription').value,
+                    details: document.getElementById('debtSource').value === 'other' ? 
+                            document.getElementById('otherDebtDetails').value : '',
+                    personName: document.getElementById('debtSource').value === 'friend' ?
+                            document.getElementById('friendFamilyName').value : ''
+                };
+                
+                saveData();
+                updateDebtList();
+                updateSummary();
+                resetDebtForm();
+                
+                // Show success feedback
+                showToast('Debt updated successfully!', 'success');
+            }
+        }
+        
+        // Add new deposit
+        function addDeposit() {
+            const deposit = {
+                id: Date.now().toString(),
+                date: document.getElementById('depositDate').value,
+                source: document.getElementById('depositSource').value,
+                amount: parseFloat(document.getElementById('depositAmount').value),
+                description: document.getElementById('depositDescription').value,
+                details: document.getElementById('depositSource').value === 'other' ? 
+                        document.getElementById('otherDepositDetails').value : ''
+            };
+            
+            financialData.deposits.push(deposit);
+            saveData();
+            updateDepositList();
+            updateSummary();
+            depositForm.reset();
+            
+            // Show success feedback
+            showToast('Deposit added successfully!', 'success');
+        }
+        
+        // Update existing deposit
+        function updateDeposit(id) {
+            const index = financialData.deposits.findIndex(deposit => deposit.id === id);
+            if (index !== -1) {
+                financialData.deposits[index] = {
+                    id: id,
+                    date: document.getElementById('depositDate').value,
+                    source: document.getElementById('depositSource').value,
+                    amount: parseFloat(document.getElementById('depositAmount').value),
+                    description: document.getElementById('depositDescription').value,
+                    details: document.getElementById('depositSource').value === 'other' ? 
+                            document.getElementById('otherDepositDetails').value : ''
+                };
+                
+                saveData();
+                updateDepositList();
+                updateSummary();
+                resetDepositForm();
+                
+                // Show success feedback
+                showToast('Deposit updated successfully!', 'success');
+            }
+        }
+        
+        // Helper function to get expense type
+        function getExpenseType() {
+            if (expansionCategory.value === 'office') {
+                return officeExpansionType.value;
+            }
+            return '';
+        }
+        
+        // Helper function to get expense details
+        function getExpenseDetails() {
+            if (expansionCategory.value === 'office' && officeExpansionType.value === 'otherOffice') {
+                return document.getElementById('officeOtherDetails').value;
+            } else if (expansionCategory.value === 'other') {
+                return document.getElementById('otherExpenseDetails').value;
+            }
+            return '';
+        }
+        
+        // Update expense list
+        function updateExpenseList() {
+            expenseList.innerHTML = '<h2><i class="fas fa-history"></i> Recent Expenses</h2>';
+            
+            if (financialData.expenses.length === 0) {
+                expenseList.innerHTML += `
+                    <div class="empty-state">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <h3>No expenses recorded yet</h3>
+                        <p>Add your first expense to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by date (newest first)
+            const sortedExpenses = [...financialData.expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedExpenses.forEach(expense => {
+                const expenseItem = document.createElement('div');
+                expenseItem.className = 'entry-item';
+                
+                const formattedDate = new Date(expense.date).toLocaleDateString();
+                const category = formatCategory(expense.category);
+                const type = expense.type ? ` (${formatCategory(expense.type)})` : '';
+                
+                expenseItem.innerHTML = `
+                    <div class="entry-details">
+                        <div class="entry-date">${formattedDate}</div>
+                        <div class="entry-category">${category}${type}</div>
+                        ${expense.description ? `<div class="entry-description">${expense.description}</div>` : ''}
+                    </div>
+                    <div class="entry-amount expense-amount">-$${expense.amount.toFixed(2)}</div>
+                    <div class="btn-group">
+                        <button class="btn btn-warning btn-sm edit-expense-btn" data-id="${expense.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-expense-btn" data-id="${expense.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                
+                expenseList.appendChild(expenseItem);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-expense-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    editExpense(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-expense-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    deleteExpense(id);
+                });
+            });
+        }
+        
+        // Edit expense
+        function editExpense(id) {
+            const expense = financialData.expenses.find(exp => exp.id === id);
+            if (expense) {
+                document.getElementById('expenseId').value = expense.id;
+                document.getElementById('expenseDate').value = expense.date;
+                document.getElementById('expansionCategory').value = expense.category;
+                
+                // Show relevant dynamic fields based on category
+                if (expense.category === 'office') {
+                    officeExpansionContainer.classList.remove('hidden');
+                    document.getElementById('officeExpansionType').value = expense.type;
+                    
+                    if (expense.type === 'otherOffice') {
+                        officeOtherContainer.classList.remove('hidden');
+                        document.getElementById('officeOtherDetails').value = expense.details;
+                    }
+                } else if (expense.category === 'other') {
+                    otherExpenseContainer.classList.remove('hidden');
+                    document.getElementById('otherExpenseDetails').value = expense.details;
+                }
+                
+                document.getElementById('expansionAmount').value = expense.amount;
+                document.getElementById('expenseDescription').value = expense.description || '';
+                
+                // Change button text
+                expenseSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Update Expense';
+                expenseCancelBtn.classList.remove('hidden');
+                
+                // Scroll to form
+                document.getElementById('expenseForm').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Delete expense
+        function deleteExpense(id) {
+            if (confirm('Are you sure you want to delete this expense?')) {
+                financialData.expenses = financialData.expenses.filter(exp => exp.id !== id);
+                saveData();
+                updateExpenseList();
+                updateSummary();
+                showToast('Expense deleted successfully!', 'success');
+            }
+        }
+        
+        // Reset expense form
+        function resetExpenseForm() {
+            expenseForm.reset();
+            document.getElementById('expenseId').value = '';
+            officeExpansionContainer.classList.add('hidden');
+            otherExpenseContainer.classList.add('hidden');
+            officeOtherContainer.classList.add('hidden');
+            expenseSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Add Expense';
+            expenseCancelBtn.classList.add('hidden');
+        }
+        
+        // Update income list
+        function updateIncomeList() {
+            incomeList.innerHTML = '<h2><i class="fas fa-history"></i> Recent Income</h2>';
+            
+            if (financialData.income.length === 0) {
+                incomeList.innerHTML += `
+                    <div class="empty-state">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <h3>No income recorded yet</h3>
+                        <p>Add your first income entry to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by date (newest first)
+            const sortedIncome = [...financialData.income].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedIncome.forEach(income => {
+                const incomeItem = document.createElement('div');
+                incomeItem.className = 'entry-item';
+                
+                const formattedDate = new Date(income.date).toLocaleDateString();
+                const source = formatCategory(income.source);
+                
+                incomeItem.innerHTML = `
+                    <div class="entry-details">
+                        <div class="entry-date">${formattedDate}</div>
+                        <div class="entry-category">${source}</div>
+                        ${income.description ? `<div class="entry-description">${income.description}</div>` : ''}
+                    </div>
+                    <div class="entry-amount income-amount">+$${income.amount.toFixed(2)}</div>
+                    <div class="btn-group">
+                        <button class="btn btn-warning btn-sm edit-income-btn" data-id="${income.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-income-btn" data-id="${income.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                
+                incomeList.appendChild(incomeItem);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-income-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    editIncome(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-income-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    deleteIncome(id);
+                });
+            });
+        }
+        
+        // Edit income
+        function editIncome(id) {
+            const income = financialData.income.find(inc => inc.id === id);
+            if (income) {
+                document.getElementById('incomeId').value = income.id;
+                document.getElementById('incomeDate').value = income.date;
+                document.getElementById('incomeSource').value = income.source;
+                
+                // Show relevant dynamic fields based on source
+                if (income.source === 'other') {
+                    otherIncomeContainer.classList.remove('hidden');
+                    document.getElementById('otherIncomeDetails').value = income.details;
+                }
+                
+                document.getElementById('incomeAmount').value = income.amount;
+                document.getElementById('incomeDescription').value = income.description || '';
+                
+                // Change button text
+                incomeSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Update Income';
+                incomeCancelBtn.classList.remove('hidden');
+                
+                // Scroll to form
+                document.getElementById('incomeForm').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Delete income
+        function deleteIncome(id) {
+            if (confirm('Are you sure you want to delete this income entry?')) {
+                financialData.income = financialData.income.filter(inc => inc.id !== id);
+                saveData();
+                updateIncomeList();
+                updateSummary();
+                showToast('Income deleted successfully!', 'success');
+            }
+        }
+        
+        // Reset income form
+        function resetIncomeForm() {
+            incomeForm.reset();
+            document.getElementById('incomeId').value = '';
+            otherIncomeContainer.classList.add('hidden');
+            incomeSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Add Income';
+            incomeCancelBtn.classList.add('hidden');
+        }
+        
+        // Update debt list
+        function updateDebtList() {
+            debtList.innerHTML = '<h2><i class="fas fa-history"></i> Recent Debts</h2>';
+            
+            if (financialData.debts.length === 0) {
+                debtList.innerHTML += `
+                    <div class="empty-state">
+                        <i class="fas fa-credit-card"></i>
+                        <h3>No debts recorded yet</h3>
+                        <p>Add your first debt to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by date (newest first)
+            const sortedDebts = [...financialData.debts].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedDebts.forEach(debt => {
+                const debtItem = document.createElement('div');
+                debtItem.className = 'entry-item';
+                
+                const formattedDate = new Date(debt.date).toLocaleDateString();
+                const source = formatCategory(debt.source);
+                
+                debtItem.innerHTML = `
+                    <div class="entry-details">
+                        <div class="entry-date">${formattedDate}</div>
+                        <div class="entry-category">${source}${debt.personName ? ` (${debt.personName})` : ''}</div>
+                        ${debt.description ? `<div class="entry-description">${debt.description}</div>` : ''}
+                    </div>
+                    <div class="entry-amount debt-amount">+$${debt.amount.toFixed(2)}</div>
+                    <div class="btn-group">
+                        <button class="btn btn-warning btn-sm edit-debt-btn" data-id="${debt.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-debt-btn" data-id="${debt.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                
+                debtList.appendChild(debtItem);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-debt-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    editDebt(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-debt-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    deleteDebt(id);
+                });
+            });
+        }
+        
+        // Edit debt
+        function editDebt(id) {
+            const debt = financialData.debts.find(d => d.id === id);
+            if (debt) {
+                document.getElementById('debtId').value = debt.id;
+                document.getElementById('debtDate').value = debt.date;
+                document.getElementById('debtSource').value = debt.source;
+                
+                // Show relevant dynamic fields based on source
+                if (debt.source === 'other') {
+                    otherDebtContainer.classList.remove('hidden');
+                    document.getElementById('otherDebtDetails').value = debt.details;
+                } else if (debt.source === 'friend') {
+                    friendFamilyContainer.classList.remove('hidden');
+                    document.getElementById('friendFamilyName').value = debt.personName || '';
+                }
+                
+                document.getElementById('debtAmount').value = debt.amount;
+                document.getElementById('debtDescription').value = debt.description || '';
+                
+                // Change button text
+                debtSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Update Debt';
+                debtCancelBtn.classList.remove('hidden');
+                
+                // Scroll to form
+                document.getElementById('debtForm').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Delete debt
+        function deleteDebt(id) {
+            if (confirm('Are you sure you want to delete this debt?')) {
+                financialData.debts = financialData.debts.filter(d => d.id !== id);
+                saveData();
+                updateDebtList();
+                updateSummary();
+                showToast('Debt deleted successfully!', 'success');
+            }
+        }
+        
+        // Reset debt form
+        function resetDebtForm() {
+            debtForm.reset();
+            document.getElementById('debtId').value = '';
+            otherDebtContainer.classList.add('hidden');
+            friendFamilyContainer.classList.add('hidden');
+            debtSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Add Debt';
+            debtCancelBtn.classList.add('hidden');
+        }
+        
+        // Update deposit list
+        function updateDepositList() {
+            depositList.innerHTML = '<h2><i class="fas fa-history"></i> Recent Deposits</h2>';
+            
+            if (financialData.deposits.length === 0) {
+                depositList.innerHTML += `
+                    <div class="empty-state">
+                        <i class="fas fa-piggy-bank"></i>
+                        <h3>No deposits recorded yet</h3>
+                        <p>Add your first deposit to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by date (newest first)
+            const sortedDeposits = [...financialData.deposits].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedDeposits.forEach(deposit => {
+                const depositItem = document.createElement('div');
+                depositItem.className = 'entry-item';
+                
+                const formattedDate = new Date(deposit.date).toLocaleDateString();
+                const source = formatCategory(deposit.source);
+                
+                depositItem.innerHTML = `
+                    <div class="entry-details">
+                        <div class="entry-date">${formattedDate}</div>
+                        <div class="entry-category">${source}</div>
+                        ${deposit.description ? `<div class="entry-description">${deposit.description}</div>` : ''}
+                    </div>
+                    <div class="entry-amount deposit-amount">+$${deposit.amount.toFixed(2)}</div>
+                    <div class="btn-group">
+                        <button class="btn btn-warning btn-sm edit-deposit-btn" data-id="${deposit.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-deposit-btn" data-id="${deposit.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                
+                depositList.appendChild(depositItem);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-deposit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    editDeposit(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-deposit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    deleteDeposit(id);
+                });
+            });
+        }
+        
+        // Edit deposit
+        function editDeposit(id) {
+            const deposit = financialData.deposits.find(dep => dep.id === id);
+            if (deposit) {
+                document.getElementById('depositId').value = deposit.id;
+                document.getElementById('depositDate').value = deposit.date;
+                document.getElementById('depositSource').value = deposit.source;
+                
+                // Show relevant dynamic fields based on source
+                if (deposit.source === 'other') {
+                    otherDepositContainer.classList.remove('hidden');
+                    document.getElementById('otherDepositDetails').value = deposit.details;
+                }
+                
+                document.getElementById('depositAmount').value = deposit.amount;
+                document.getElementById('depositDescription').value = deposit.description || '';
+                
+                // Change button text
+                depositSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Update Deposit';
+                depositCancelBtn.classList.remove('hidden');
+                
+                // Scroll to form
+                document.getElementById('depositForm').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Delete deposit
+        function deleteDeposit(id) {
+            if (confirm('Are you sure you want to delete this deposit?')) {
+                financialData.deposits = financialData.deposits.filter(dep => dep.id !== id);
+                saveData();
+                updateDepositList();
+                updateSummary();
+                showToast('Deposit deleted successfully!', 'success');
+            }
+        }
+        
+        // Reset deposit form
+        function resetDepositForm() {
+            depositForm.reset();
+            document.getElementById('depositId').value = '';
+            otherDepositContainer.classList.add('hidden');
+            depositSubmitBtn.innerHTML = '<i class="fas fa-save"></i> Add Deposit';
+            depositCancelBtn.classList.add('hidden');
+        }
+        
+        // Update financial summary
+        function updateSummary() {
+            const totalExpansion = financialData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const totalIncome = financialData.income.reduce((sum, income) => sum + income.amount, 0);
+            const totalDebts = financialData.debts.reduce((sum, debt) => sum + debt.amount, 0);
+            const totalDeposits = financialData.deposits.reduce((sum, deposit) => sum + deposit.amount, 0);
+            const balance = totalIncome - totalExpansion;
+            
+            totalExpansionDisplay.textContent = `$${totalExpansion.toFixed(2)}`;
+            totalIncomeDisplay.textContent = `$${totalIncome.toFixed(2)}`;
+            balanceDisplay.textContent = `$${balance.toFixed(2)}`;
+            totalDebtsDisplay.textContent = `$${totalDebts.toFixed(2)}`;
+            totalDepositsDisplay.textContent = `$${totalDeposits.toFixed(2)}`;
+            
+            updateChart();
+        }
+        
+        // Format category names for display
+        function formatCategory(category) {
+            if (!category) return '';
+            return category.split(/(?=[A-Z])/).map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+        
+        // Update the financial chart
+        function updateChart() {
+            const chartCanvas = document.getElementById('financialChart');
+            
+            // Clear previous chart if it exists
+            if (financialChart) {
+                financialChart.destroy();
+            }
+            
+            // Don't create a new chart if there's no data
+            if (financialData.expenses.length === 0 && 
+                financialData.income.length === 0 && 
+                financialData.debts.length === 0 && 
+                financialData.deposits.length === 0) {
+                // Clear the canvas
+                chartCanvas.getContext('2d').clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+                return;
+            }
+            
+            // Group data by month
+            const monthlyData = {};
+            
+            // Process expenses
+            financialData.expenses.forEach(expense => {
+                const date = new Date(expense.date);
+                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!monthlyData[monthYear]) {
+                    monthlyData[monthYear] = {
+                        expenses: 0,
+                        income: 0,
+                        debts: 0,
+                        deposits: 0
+                    };
+                }
+                
+                monthlyData[monthYear].expenses += expense.amount;
+            });
+            
+            // Process income
+            financialData.income.forEach(income => {
+                const date = new Date(income.date);
+                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!monthlyData[monthYear]) {
+                    monthlyData[monthYear] = {
+                        expenses: 0,
+                        income: 0,
+                        debts: 0,
+                        deposits: 0
+                    };
+                }
+                
+                monthlyData[monthYear].income += income.amount;
+            });
+            
+            // Process debts
+            financialData.debts.forEach(debt => {
+                const date = new Date(debt.date);
+                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!monthlyData[monthYear]) {
+                    monthlyData[monthYear] = {
+                        expenses: 0,
+                        income: 0,
+                        debts: 0,
+                        deposits: 0
+                    };
+                }
+                
+                monthlyData[monthYear].debts += debt.amount;
+            });
+            
+            // Process deposits
+            financialData.deposits.forEach(deposit => {
+                const date = new Date(deposit.date);
+                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!monthlyData[monthYear]) {
+                    monthlyData[monthYear] = {
+                        expenses: 0,
+                        income: 0,
+                        debts: 0,
+                        deposits: 0
+                    };
+                }
+                
+                monthlyData[monthYear].deposits += deposit.amount;
+            });
+            
+            // Sort months chronologically
+            const sortedMonths = Object.keys(monthlyData).sort();
+            
+            const labels = sortedMonths.map(month => {
+                const [year, monthNum] = month.split('-');
+                const date = new Date(year, monthNum - 1);
+                return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+            });
+            
+            const expensesData = sortedMonths.map(month => monthlyData[month].expenses);
+            const incomeData = sortedMonths.map(month => monthlyData[month].income);
+            const balanceData = sortedMonths.map(month => monthlyData[month].income - monthlyData[month].expenses);
+            const debtsData = sortedMonths.map(month => monthlyData[month].debts);
+            const depositsData = sortedMonths.map(month => monthlyData[month].deposits);
+            
+            financialChart = new Chart(chartCanvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Expenses',
+                            data: expensesData,
+                            borderColor: 'rgba(247, 37, 133, 1)',
+                            backgroundColor: 'rgba(247, 37, 133, 0.2)',
+                            tension: 0.1,
+                            fill: false,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Total Income',
+                            data: incomeData,
+                            borderColor: 'rgba(76, 201, 240, 1)',
+                            backgroundColor: 'rgba(76, 201, 240, 0.2)',
+                            tension: 0.1,
+                            fill: false,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Balance',
+                            data: balanceData,
+                            borderColor: 'rgba(67, 97, 238, 1)',
+                            backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                            tension: 0.1,
+                            fill: false,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Total Debts',
+                            data: debtsData,
+                            borderColor: 'rgba(248, 150, 30, 1)',
+                            backgroundColor: 'rgba(248, 150, 30, 0.2)',
+                            tension: 0.1,
+                            fill: false,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Total Deposits',
+                            data: depositsData,
+                            borderColor: 'rgba(72, 149, 239, 1)',
+                            backgroundColor: 'rgba(72, 149, 239, 0.2)',
+                            tension: 0.1,
+                            fill: false,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Monthly Financial Overview',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                drawBorder: false,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 4,
+                            hoverRadius: 6,
+                            backgroundColor: 'white',
+                            borderWidth: 2
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Clear all financial data
+        function clearAllData() {
+            financialData = {
+                expenses: [],
+                income: [],
+                debts: [],
+                deposits: []
+            };
+            
+            saveData();
+            
+            // Reset all forms
+            resetExpenseForm();
+            resetIncomeForm();
+            resetDebtForm();
+            resetDepositForm();
+            
+            // Update all lists and summary
+            updateExpenseList();
+            updateIncomeList();
+            updateDebtList();
+            updateDepositList();
+            
+            // Clear the chart
+            if (financialChart) {
+                financialChart.destroy();
+                financialChart = null;
+                // Reset the chart canvas
+                const chartCanvas = document.getElementById('financialChart');
+                chartCanvas.getContext('2d').clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            }
+            
+            // Reset the summary displays
+            totalExpansionDisplay.textContent = '$0.00';
+            totalIncomeDisplay.textContent = '$0.00';
+            balanceDisplay.textContent = '$0.00';
+            totalDebtsDisplay.textContent = '$0.00';
+            totalDepositsDisplay.textContent = '$0.00';
+            
+            showToast('All data cleared successfully!', 'success');
+        }
+        
+        // Show toast notification
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Add toast styles
+        function addToastStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .toast {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    background: white;
+                    border-radius: var(--border-radius);
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+                    display: flex;
+                    align-items: center;
+                    transform: translateY(100px);
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                    z-index: 1000;
+                    max-width: 350px;
+                }
+                
+                .toast.show {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+                
+                .toast-success {
+                    border-left: 4px solid var(--success-color);
+                }
+                
+                .toast-error {
+                    border-left: 4px solid var(--danger-color);
+                }
+                
+                .toast-icon {
+                    margin-right: 15px;
+                    font-size: 1.5rem;
+                }
+                
+                .toast-success .toast-icon {
+                    color: var(--success-color);
+                }
+                
+                .toast-error .toast-icon {
+                    color: var(--danger-color);
+                }
+                
+                .toast-message {
+                    font-size: 0.9rem;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('financialData', JSON.stringify(financialData));
+        }
+        
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('financialData');
+            if (savedData) {
+                financialData = JSON.parse(savedData);
+                
+                // Update all lists and summary
+                updateExpenseList();
+                updateIncomeList();
+                updateDebtList();
+                updateDepositList();
+                updateSummary();
+            }
+        }
+        
+        // Initialize the app
+        function init() {
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('expenseDate').value = today;
+            document.getElementById('incomeDate').value = today;
+            document.getElementById('debtDate').value = today;
+            document.getElementById('depositDate').value = today;
+            
+            // Add toast styles
+            addToastStyles();
+            
+            // Load saved data
+            loadData();
+        }
+        
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
